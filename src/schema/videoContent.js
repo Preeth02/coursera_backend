@@ -1,0 +1,29 @@
+import mongoose, { Schema } from "mongoose";
+
+const videoContentSchema = new Schema(
+  {
+    videoURL: {
+      type: String,
+      required: true,
+    },
+    title: {
+      type: String,
+      required: true,
+    },
+    description: {
+      type: String,
+      required: true,
+    },
+    creatorID: {
+      type: Schema.Types.ObjectId,
+      ref: "Admin",
+    },
+    courseID: {
+      type: Schema.Types.ObjectId,
+      ref: "Course",
+    },
+  },
+  { timestamps: true }
+);
+
+export const VideoContent = mongoose.model("VideoContent", videoContentSchema);

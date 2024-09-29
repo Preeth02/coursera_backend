@@ -14,3 +14,5 @@ const purchaseSchema = new Schema(
     timestamps: true,
   }
 );
+
+export const Purchase = mongoose.model("Purchase", purchaseSchema);
