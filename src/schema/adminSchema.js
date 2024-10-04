@@ -42,10 +42,10 @@ adminSchema.pre("save", async function (next) {
 });
 adminSchema.methods.isPasswordCorrect = async function (password) {
   //It returns true or false
-  return await bcrypt.compare(this.password, password);
+  return await bcrypt.compare(password,this.password);
 };
 
-adminSchema.methods.generateAccessToken = async function () {
+adminSchema.methods.generateAccessToken = function () {
   return jwt.sign(
     {
       _id: this._id,
@@ -56,7 +56,7 @@ adminSchema.methods.generateAccessToken = async function () {
     { expiresIn: process.env.ACCESS_TOKEN_EXPIRY }
   );
 };
-adminSchema.methods.generateRefreshToken = async function () {
+adminSchema.methods.generateRefreshToken = function () {
   return jwt.sign(
     {
       _id: this._id,

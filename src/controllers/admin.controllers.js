@@ -1,22 +1,22 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
-import { User } from "../schema/userSchema.js";
+import { Admin } from "../schema/adminSchema.js";
 import mongoose from "mongoose";
 
-const generateRefreshandAccessToken = async (userId) => {
-  const user = await User.findById(userId);
-  const accessToken = user.generateAccessToken();
-  const refreshToken = user.generateRefreshToken();
+const generateRefreshandAccessToken = async (AdminId) => {
+  const admin = await Admin.findById(AdminId);
+  const accessToken = admin.generateAccessToken();
+  const refreshToken = admin.generateRefreshToken();
 
-  user.refreshToken = refreshToken;
-  await user.save({
+  admin.refreshToken = refreshToken;
+  await admin.save({
     validateBeforeSave: false,
   });
   return { accessToken, refreshToken };
 };
 
-const registerUser = asyncHandler(async (req, res) => {
+const registerAdmin = asyncHandler(async (req, res) => {
   const { userName, email, password } = req.body;
 
   //   if (!(userName || email || password)) {
@@ -26,56 +26,55 @@ const registerUser = asyncHandler(async (req, res) => {
     throw new ApiError(400, "All fields are required");
   }
 
-  const userExisted = await User.findOne({
+  const AdminExisted = await Admin.findOne({
     email,
   });
-  if (userExisted) {
+  if (AdminExisted) {
     throw new ApiError(409, "Email already exists");
   }
 
-  const user = await User.create({
+  const admin = await Admin.create({
     email,
     userName,
     password,
   });
 
-  const createdUser = await User.findById(user._id).select(
+  const createdAdmin = await Admin.findById(admin._id).select(
     "-password -refreshToken"
   );
 
-  if (!createdUser) {
-    throw new ApiError(500, "Something went wrong while registering the user");
+  if (!createdAdmin) {
+    throw new ApiError(500, "Something went wrong while registering the Admin");
   }
 
   return res
     .status(201)
-    .json(new ApiResponse(200, "User created successfully"));
+    .json(new ApiResponse(200, "Admin created successfully"));
 });
 
-const loginUser = asyncHandler(async (req, res) => {
+const loginAdmin = asyncHandler(async (req, res) => {
   const { email, userName, password } = req.body;
   if (!(userName || email)) {
-    throw new ApiError(400, "Email or UserName is required");
+    throw new ApiError(400, "Email or userName is required");
   }
-  const user = await User.findOne({
+  const admin = await Admin.findOne({
     $or: [{ email }, { userName }],
   });
 
-  if (!user) {
-    throw new ApiError(404, "User not found");
+  if (!admin) {
+    throw new ApiError(404, "Admin not found");
   }
-
-  const isPassword = await user.isPasswordCorrect(password);
+  const isPassword = await admin.isPasswordCorrect(password);
 
   if (!isPassword) {
     throw new ApiError(401, "Invalid Password");
   }
 
   const { accessToken, refreshToken } = await generateRefreshandAccessToken(
-    user._id
+    admin._id
   );
 
-  const loggedInUser = await User.findById(user._id).select(
+  const loggedInAdmin = await Admin.findById(Admin._id).select(
     "-password -refreshToken"
   );
 
@@ -91,14 +90,14 @@ const loginUser = asyncHandler(async (req, res) => {
     .json(
       new ApiResponse(
         200,
-        { loggedInUser, accessToken, refreshToken },
-        "User logged in successfully"
+        { loggedInAdmin, accessToken, refreshToken },
+        "Admin logged in successfully"
       )
     );
 });
 
-const logoutUser = asyncHandler(async (req, res) => {
-  await User.findByIdAndUpdate(
+const logoutAdmin = asyncHandler(async (req, res) => {
+  await Admin.findByIdAndUpdate(
     req.user._id,
     {
       $set: {
@@ -118,27 +117,29 @@ const logoutUser = asyncHandler(async (req, res) => {
     .status(200)
     .clearCookie("accessToken", options)
     .clearCookie("refreshToken", options)
-    .json(new ApiResponse(200, "User logged out"));
+    .json(new ApiResponse(200, "Admin logged out"));
 });
 
-const getCurrentUser = asyncHandler(async (req, res) => {
+const getCurrentAdmin = asyncHandler(async (req, res) => {
   return res
     .status(200)
-    .json(new ApiResponse(200, req.user, "Current user fetched successfully"));
+    .json(
+      new ApiResponse(200, req.user, "Current Admin fetched successfully")
+    );
 });
 
-// const getUserPurchases = asyncHandler(async (req, res) => {
-//   const user = await User.aggregate([
+// const getAdminPurchases = asyncHandler(async (req, res) => {
+//   const Admin = await Admin.aggregate([
 //     {
 //       $lookup: {
 //         from: "purchases",
 //         localField: "_id",
-//         foreignField: "userId",
-//         as: "isUser",
+//         foreignField: "AdminId",
+//         as: "isAdmin",
 //         pipeline: [
 //           {
 //             $match: {
-//               _id: new mongoose.Types.ObjectId(req.user._id),
+//               _id: new mongoose.Types.ObjectId(req.Admin._id),
 //             },
 //           },
 //         ],
@@ -149,4 +150,4 @@ const getCurrentUser = asyncHandler(async (req, res) => {
 
 //Add ZOD validation
 
-export { registerUser, loginUser, logoutUser, getCurrentUser };
+export { registerAdmin, loginAdmin, logoutAdmin, getCurrentAdmin };
