@@ -14,6 +14,10 @@ const videoContentSchema = new Schema(
       type: String,
       required: true,
     },
+    duration: {
+      type: Number,
+      required: true,
+    },
     creatorID: {
       type: Schema.Types.ObjectId,
       ref: "Admin",

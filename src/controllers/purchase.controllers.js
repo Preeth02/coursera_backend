@@ -1,7 +1,7 @@
-import { asyncHandler } from "../utils/asyncHandler";
-import { ApiError } from "../utils/ApiError";
-import { ApiResponse } from "../utils/ApiResponse";
-import { Purchase } from "../schema/purchasesSchema";
+import { asyncHandler } from "../utils/asyncHandler.js";
+import { ApiError } from "../utils/ApiError.js";
+import { ApiResponse } from "../utils/ApiResponse.js";
+import { Purchase } from "../schema/purchasesSchema.js";
 
 const purchaseCourse = asyncHandler(async (req, res) => {
   const { courseId } = req.params;
@@ -16,6 +16,10 @@ const purchaseCourse = asyncHandler(async (req, res) => {
     courseId,
     userId,
   });
+
+  if (!purchaseCourse) {
+    throw new ApiError(400, "Something went wrong when purchasing the course.");
+  }
 
   return res
     .status(201)
