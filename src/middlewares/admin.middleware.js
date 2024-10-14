@@ -17,6 +17,7 @@ const verifyAdmin = asyncHandler(async (req, res, next) => {
       throw new ApiError(401, "Invalid Access Token");
     }
     req.user = decodedToken;
+    // console.log(decodedToken)
     next();
   } catch (error) {
     throw new ApiError(401, error?.message || "Invalid Access Token");

@@ -4,7 +4,7 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { Course } from "../schema/courseSchema.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { VideoContent } from "../schema/videoContent.js";
-import mongoose, { Schema } from "mongoose";
+import mongoose, { Mongoose, ObjectId } from "mongoose";
 
 // importing the cloudinary utils for the sake of id the admin decides to delete the course
 import { v2 as cloudinary } from "cloudinary";
@@ -17,13 +17,13 @@ cloudinary.config({
 });
 
 const createCourse = asyncHandler(async (req, res) => {
-  const { creatorId } = req.user._id;
+  const creatorID = req.user._id;
   const { title, description, price } = req.body;
-  if ([title, description, price].some((fields) => fields?.trim() === "")) {
+  if ([title, description, price].some((fields) => String(fields)?.trim() === "")) {
     throw new ApiError(400, "All fields are required.");
   }
 
-  const image = req.files?.imageURL[0]?.path;
+  const image = req.file?.path; // req.file for single image or video
   if (!image) {
     throw new ApiError(400, "Image file is required..");
   }
@@ -32,13 +32,12 @@ const createCourse = asyncHandler(async (req, res) => {
   if (!imageURL) {
     throw new ApiError(400, "There was an error while uploading the image.");
   }
-
   const course = await Course.create({
     title,
     description,
     price,
-    imageURL: imageURL,
-    creatorId,
+    imageURL: imageURL?.url,
+    creatorID,
   });
 
   if (!course) {
@@ -56,7 +55,7 @@ const getCourseVideos = asyncHandler(async (req, res) => {
   const videos = await Course.aggregate([
     {
       $match: {
-        courseID: mongoose.Types.ObjectId(courseId),
+        courseID: new ObjectId(courseId),
       },
     },
     {
@@ -68,16 +67,16 @@ const getCourseVideos = asyncHandler(async (req, res) => {
         pipeline: [
           {
             $match: {
-              courseID: new mongoose.Types.ObjectId(courseId),
+              courseID: new ObjectId(courseId),
             },
           },
         ],
       },
     },
   ]);
-  if (!videos || videos?.length === 0) {
-    throw new ApiError(404, "No videos found in the course");
-  }
+  // if (!videos || videos?.length === 0) {
+  //   throw new ApiError(404, "No videos found in the course");
+  // }
 
   return res
     .status(201)
@@ -90,7 +89,7 @@ const deleteCourse = asyncHandler(async (req, res) => {
   const { courseId } = req.params;
   const courseVideos = await VideoContent.find({
     //courseId   <------ check it and update the comment
-    courseId: mongoose.Types.ObjectId(courseId),
+    courseId: new ObjectId(courseId),
   });
 
   // Promise.all() to run all the task concurrently . It waits for all the fullfilments or the first rejection
@@ -112,20 +111,27 @@ const deleteCourse = asyncHandler(async (req, res) => {
 
 const updateCourse = asyncHandler(async (req, res) => {
   const { title, description, price } = req.body;
-  if ([title, description, price].some((fields) => fields?.trim() === "")) {
+  const { courseId } = req.params;
+  if (!courseId) {
+    throw new ApiError(401, "No course ID provided");
+  }
+  if (
+    [title, description, price].some((fields) => String(fields)?.trim() === "")
+  ) {
     throw new ApiError(400, "All fields are required.");
   }
   const course = await Course.findByIdAndUpdate(
-    req.user._id,
+    courseId,
     {
       $set: {
-        title,
-        description,
+        title: title.trim(),
+        description: description.trim(),
         price,
       },
     },
     {
       new: true,
+      runValidators: true,
     }
   );
   if (!course) {

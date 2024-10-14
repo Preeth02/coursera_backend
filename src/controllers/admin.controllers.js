@@ -74,7 +74,7 @@ const loginAdmin = asyncHandler(async (req, res) => {
     admin._id
   );
 
-  const loggedInAdmin = await Admin.findById(Admin._id).select(
+  const loggedInAdmin = await Admin.findById(admin._id).select(
     "-password -refreshToken"
   );
 

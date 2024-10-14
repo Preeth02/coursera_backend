@@ -1,4 +1,4 @@
-import cloudinary from "cloudinary";
+// import cloudinary from "cloudinary";
 import fs from "fs";
 
 import { v2 as cloudinary } from "cloudinary";
@@ -14,7 +14,7 @@ cloudinary.config({
 const uploadOnCloudinary = async (localFilePath) => {
   try {
     if (!localFilePath) return null;
-    const response = await cloudinary.upload(localFilePath, {
+    const response = await cloudinary.uploader.upload(localFilePath, {
       resource_type: "auto",
     });
     if (response) {
