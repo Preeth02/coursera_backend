@@ -26,6 +26,11 @@ const videoContentSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "Course",
     },
+    folderID:{
+      type: Schema.Types.ObjectId,
+      ref: "Folder",
+
+    }
   },
   { timestamps: true }
 );

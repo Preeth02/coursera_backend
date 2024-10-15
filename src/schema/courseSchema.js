@@ -3,10 +3,10 @@ import mongooseAggregatePaginate from "mongoose-aggregate-paginate-v2";
 
 const courseSchema = new Schema(
   {
-    courseVideos: [
+    folders: [
       {
         type: Schema.Types.ObjectId,
-        ref: "VideoContent",
+        ref: "Folder",
       },
     ],
     title: {
