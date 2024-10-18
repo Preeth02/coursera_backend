@@ -2,6 +2,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import jwt from "jsonwebtoken";
 import { Course } from "../schema/courseSchema.js";
+import mongoose from "mongoose";
 // import { User } from "../schema/userSchema.js";
 
 const verifyCourseAdmin = asyncHandler(async (req, res, next) => {
@@ -21,8 +22,8 @@ const verifyCourseAdmin = asyncHandler(async (req, res, next) => {
       throw new ApiError(401, "Invalid Access Token");
     }
     const { courseId } = req?.params;
-    if (!courseId) {
-      throw new ApiError(400, "Provide the course id");
+    if (!courseId || !mongoose.Types.ObjectId.isValid(courseId)) {
+      throw new ApiError(400, "Provide valid course id");
     }
     const course = await Course.findById(courseId);
     if (!course) {
