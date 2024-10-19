@@ -92,6 +92,8 @@ const deleteCourse = asyncHandler(async (req, res) => {
   const { courseId } = req.params;
   const course = await Course.findById(courseId);
   const courseFolders = course?.folders;
+  const imageURL = course?.imageURL;
+  // console.log(`Image URL is ${imageURL}`);
   // // Promise.all() to run all the task concurrently . It waits for all the fullfilments or the first rejection
   if (courseFolders && courseFolders?.length > 0 && courseFolders !== null) {
     courseFolders.forEach(async (folder) => {
@@ -99,7 +101,13 @@ const deleteCourse = asyncHandler(async (req, res) => {
       const videoIDS = folderData?.videoID;
       if (videoIDS && videoIDS?.length > 0) {
         videoIDS.forEach(async (vid) => {
-          const vidDel = await VideoContent.findByIdAndDelete(String(vid));
+          const videoDetails = await VideoContent.findById(vid);
+          await cloudinary.uploader
+            .destroy(videoDetails?.videoURL.split("/").pop().split(".")[0], {
+              resource_type: "video",
+            })
+            .then((result) => console.log("Deleting the video ", result));
+          const vidDel = await VideoContent.findByIdAndDelete(String(vid?._id));
           if (!vidDel) {
             throw new ApiError(
               400,
@@ -121,6 +129,9 @@ const deleteCourse = asyncHandler(async (req, res) => {
   if (!deletedCourse) {
     throw new ApiError(400, "There was an error while deleting the course");
   }
+  await cloudinary.uploader
+    .destroy(imageURL.split("/").pop().split(".")[0])
+    .then((result) => console.log("Deleting the image", result));
   return res
     .status(201)
     .json(new ApiResponse(200, "Course deleted successfully"));

@@ -6,6 +6,16 @@ import { VideoContent } from "../schema/videoContent.js";
 import { Folder } from "../schema/folderSchema.js";
 import mongoose, { Schema } from "mongoose";
 
+// importing the cloudinary utils for the sake of id the admin decides to delete the course
+import { v2 as cloudinary } from "cloudinary";
+
+// Configuration
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
 const createFolder = asyncHandler(async (req, res) => {
   const { title } = req.body;
   const { courseID } = req.params;
@@ -104,20 +114,18 @@ const deleteFolder = asyncHandler(async (req, res) => {
 
   if (courseVideos && courseVideos?.length > 0) {
     // Promise.all() to run all the task concurrently . It waits for all the fullfilments or the first rejection
-    const results = await Promise.all(
       courseVideos.forEach(async (vids) => {
-        console.log("Deleting the video", vids._id);
+        const videoDetails = await VideoContent.findById(vids._id);
+        await cloudinary.uploader
+          .destroy(videoDetails?.videoURL.split("/").pop().split(".")[0], {
+            resource_type: "video",
+          })
+          .then((result) => console.log("Deleting the video ", result));
+        // console.log("Deleting the video", vids._id);
         await VideoContent.findByIdAndDelete(vids._id);
       })
-    );
-    if (!results) {
-      throw new ApiError(
-        400,
-        "There was an error while deleting the videos of the folder"
-      );
-    }
     const folderRemoved = await deleteCurrentFolder(folderID, courseID);
-    console.log("Folder Removed", folderRemoved);
+    // console.log("Folder Removed", folderRemoved);
     if (folderRemoved?.error || !folderRemoved?.success) {
       throw new ApiError(400, folderRemoved?.message);
     }
@@ -126,7 +134,7 @@ const deleteFolder = asyncHandler(async (req, res) => {
       .json(new ApiResponse(200, "Folder deleted successfully"));
   }
   const folderRemoved = await deleteCurrentFolder(folderID, courseID);
-  console.log("Folder Removed", folderRemoved);
+  // console.log("Folder Removed", folderRemoved);
   if (folderRemoved?.error || !folderRemoved?.success) {
     throw new ApiError(400, folderRemoved?.message);
   }

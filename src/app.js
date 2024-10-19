@@ -6,6 +6,7 @@ import adminRoutes from "./routes/admin.routes.js";
 import purchaseRoutes from "./routes/purchase.routes.js";
 import courseRoutes from "./routes/course.routes.js";
 import folderRoutes from "./routes/folder.routes.js";
+import videoRoutes from "./routes/video.routes.js";
 const app = express();
 
 app.use(cors({ origin: process.env.CORS_ORIGIN, credentials: true }));
@@ -24,4 +25,5 @@ app.use("/api/v1/admin", adminRoutes);
 app.use("/api/v1/purchases", purchaseRoutes);
 app.use("/api/v1/course", courseRoutes);
 app.use("/api/v1/folder", folderRoutes);
+app.use("/api/v1/video", videoRoutes);
 export default app;
