@@ -14,7 +14,7 @@ const verifyVideo = asyncHandler(async (req, res, next) => {
   }
   const videoDetails = await VideoContent.findById(videoID);
   if (!videoDetails) {
-    throw new ApiError(400, "There's no such video found");
+    throw new ApiError(404, "There's no such video found");
   }
   if (
     String(videoDetails.courseID) !== courseID ||

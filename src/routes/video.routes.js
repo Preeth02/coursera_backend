@@ -8,6 +8,7 @@ import {
 } from "../controllers/video.controllers.js";
 import verifyAdmin from "../middlewares/admin.middleware.js";
 import verifyVideo from "../middlewares/video.middleware.js";
+import videoPurchasedOrAdmin from "../middlewares/videoPurchasedOrAdmin.middleware.js";
 
 const router = Router();
 router
@@ -15,7 +16,7 @@ router
   .post(verifyAdmin, upload.single("videoURL"), createVideo);
 router
   .route("/getVideo/:courseID/:folderID/:videoID")
-  .get(verifyAdmin, verifyVideo, getVideo);
+  .get(videoPurchasedOrAdmin, getVideo);
 router
   .route("/updateVideo/:courseID/:folderID/:videoID")
   .patch(verifyAdmin, verifyVideo, updateVideo);

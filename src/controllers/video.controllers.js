@@ -67,15 +67,14 @@ const createVideo = asyncHandler(async (req, res) => {
 });
 
 const getVideo = asyncHandler(async (req, res) => {
-  const videoDetails = req.videoDetails;
   return res
     .status(201)
-    .json(new ApiResponse(200, videoDetails, "Video fetched successfully"));
+    .json(new ApiResponse(200, req.videoDetails, "Video fetched successfully"));
 });
 
 const updateVideo = asyncHandler(async (req, res) => {
   const { title, description } = req.body;
-  const {videoID} = req.params;
+  const { videoID } = req.params;
   if (!title || !description) {
     throw new ApiError(400, "All the fields are required");
   }
